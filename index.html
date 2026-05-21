@@ -462,16 +462,20 @@ async function getLiffName(){ try{ if(typeof liff==='undefined') return null; aw
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', async ()=>{
-  const [sm,sg]=await Promise.all([get(ref(db,'nameMap')),get(ref(db,'memberGenders'))]);
-  nameMap=sm.exists()?sm.val():{...DEFAULT_NAME_MAP};
-  if(!sm.exists()) await set(ref(db,'nameMap'),nameMap);
-  memberGenders=sg.exists()?sg.val():{...DEFAULT_MEMBER_GENDERS};
-  if(!sg.exists()) await set(ref(db,'memberGenders'),memberGenders);
-  onValue(ref(db,'nameMap'),s=>{ if(s.exists()) nameMap=s.val(); });
-  onValue(ref(db,'memberGenders'),s=>{ if(s.exists()) memberGenders=s.val(); });
+  try{
+    const [sm,sg]=await Promise.all([get(ref(db,'nameMap')),get(ref(db,'memberGenders'))]);
+    nameMap=sm.exists()?sm.val():{...DEFAULT_NAME_MAP};
+    if(!sm.exists()) await set(ref(db,'nameMap'),nameMap);
+    memberGenders=sg.exists()?sg.val():{...DEFAULT_MEMBER_GENDERS};
+    if(!sg.exists()) await set(ref(db,'memberGenders'),memberGenders);
+    onValue(ref(db,'nameMap'),s=>{ if(s.exists()) nameMap=s.val(); });
+    onValue(ref(db,'memberGenders'),s=>{ if(s.exists()) memberGenders=s.val(); });
+  }catch(e){ console.log('Firebase init error',e); nameMap={...DEFAULT_NAME_MAP}; memberGenders={...DEFAULT_MEMBER_GENDERS}; }
   if(!currentUser){
-    const ln=await getLiffName();
-    if(ln) document.getElementById('name-input').value=resolveName(ln);
+    try{
+      const ln=await getLiffName();
+      if(ln) document.getElementById('name-input').value=resolveName(ln);
+    }catch(e){ console.log('LIFF error',e); }
     document.getElementById('name-screen').style.display='flex';
   } else startApp();
 });
